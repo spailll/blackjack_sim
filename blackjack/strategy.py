@@ -1,6 +1,7 @@
 # blackjack/strategy.py
 
 import yaml
+import math 
 
 class Strategy:
     def __init__(self, hand, dealer_card, rules):
@@ -30,7 +31,7 @@ class Strategy:
         return (len(self.hand) == 2) and (self.hand[0].rank == self.hand[1].rank)
 
     def _is_soft(self):
-        total = rules.hand_value(self.hand)
+        total = self.rules.hand_value(self.hand)
         has_ace = any(card.rank == "A" for card in self.hand)
         return has_ace and self.rules.hand_value(self.hand) + 10 <= 21
 
@@ -96,19 +97,17 @@ class BasicStrategy:
     def get_bet(self, decks_remaining):
         tc = math.floor(self.get_true_count(decks_remaining))
         chosen_bet = 1 # Default
-        for threshold_info in self._spread:
-            if tc >= threshold_info["count"]:
-                chosen_bet = threshold_info["bet"]
-            else:
-                break
+        # for threshold_info in self._spread:
+        #     if tc >= threshold_info["count"]:
+        #         chosen_bet = threshold_info["bet"]
+        #     else:
+        #         break
         return chosen_bet
 
     def decide_player_action(self, hand, dealer_card, rules):
-        # TC Logic Goes here in other versions
-        # current_tc = int(round(self.get_true_count(rules.decks)))
-        tc_index = 0
-        
+        # TC_index Logic Goes here in other versions
+    
         strategy = Strategy(hand, dealer_card, rules)
         table_index, row_index, col_index = strategy.get_coordinates()
 
-        return self._all_charts[tc_index][table_index][row_index][col_index]
+        return self._all_charts[table_index][row_index][col_index]

@@ -3,7 +3,7 @@ def test_basic_strategy_hard_9():
     from blackjack.cards import Card
     from blackjack.rules import BlackjackRules
 
-    rules = BlackjackRules()
+    rules = BlackjackRules(6)
     strategy = BasicStrategy(strategy_path="config/strategy.yaml", bet=1)
 
     # Hard 9 vs dealer 4 => expect "DH" or "double if allowed, otherwise hit"
@@ -18,7 +18,7 @@ def test_basic_strategy_soft_17_vs_dealer_6():
     from blackjack.rules import BlackjackRules
 
     strategy = BasicStrategy(strategy_path="config/strategy.yaml")
-    rules = BlackjackRules()
+    rules = BlackjackRules(6)
 
     # Soft 17 => A+6 => might check your chart for correct code
     # Suppose "DH" or "DS" or something similar
@@ -34,7 +34,7 @@ def test_basic_strategy_pair_8s_vs_dealer_10():
     from blackjack.rules import BlackjackRules
 
     strategy = BasicStrategy("config/strategy.yaml")
-    rules = BlackjackRules()
+    rules = BlackjackRules(6)
 
     # 8,8 vs 10 typically is "P" (split)
     player_hand = [Card("8","♠"), Card("8","♥")]

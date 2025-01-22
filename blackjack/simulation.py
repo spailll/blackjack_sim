@@ -22,26 +22,32 @@ class Simulator:
                 "status": "active"
             }
         ]
-        dealer_hand = [self.shoe.deal_card(), self.show.deal_card()]
+        dealer_hand = [self.shoe.deal_card(), self.shoe.deal_card()]
+
+        round_net = 0.0
 
         for card in player_hands[0]["cards"] + [dealer_hand[0]]:
             self.strategy.update_count(card)
         if self.rules.is_blackjack(player_hands[0]["cards"]):
             if self.rules.is_blackjack(dealer_hand):
-                return 0.0
-            self.strategy.update_count(dealer_hand[1])
-            self.player_bankroll += player_hands[0]["bet"] * self.rules.blackjack_payout
-            return
+                round_net == 0.0
+            else:
+                self.strategy.update_count(dealer_hand[1])
+                round_net = player_hands[0]["bet"] * self.rules.blackjack_payout
+            self.player_bankroll += round_net
+            return round_net
 
-        player_hands = player_turn(player_hands, dealer_hand[0])
+        player_hands = self.player_turn(player_hands, dealer_hand[0])
         dealer_outcome = self.dealer_turn(dealer_hand)
 
         for hand in player_hands:
             player_outcome = self.settle_bet(hand, self.rules.hand_value(dealer_hand))
-            self.player_bankroll += player_outcome
+            round_net += player_outcome
 
         self.strategy.update_count([dealer_hand[1]])
 
+        self.player_bankroll += round_net
+        return round_net
 
     def player_turn(self, player_hands, dealer_card):
         """
@@ -103,7 +109,7 @@ class Simulator:
                 
                 elif action_code == "P":
                     if self._can_split(hand_info["cards"]):
-                        self._do_split(player_hands, i, hand_info)
+                        self._do_split(player_hands, i)
                         break
 
                 else:

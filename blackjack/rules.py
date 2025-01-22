@@ -8,7 +8,7 @@ class BlackjackRules:
         self.surrender_allowed = surrender_allowed
 
     def is_blackjack(self, hand):
-        return len(hand) == 2 and hand.value() == 21
+        return len(hand) == 2 and self.hand_value(hand) == 21
 
     def hand_value(self, hand):
         total = sum(card.value() for card in hand)
