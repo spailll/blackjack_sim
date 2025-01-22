@@ -1,0 +1,21 @@
+# config/spread.yaml
+
+basic:
+  thresholds:
+    - count: -999
+      bet: 1
+    - count: 0
+      bet: 2
+    - count: 4
+      bet: 4
+
+hi_lo:
+  thresholds:
+    - count: -999
+      bet: 1
+    - count: 0
+      bet: 2
+    - count: 2
+      bet: 4
+    - count: 4
+      bet: 8

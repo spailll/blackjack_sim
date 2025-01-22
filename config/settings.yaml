@@ -1,0 +1,26 @@
+# config/settings.yaml
+
+random_seed: 42
+
+scenarios:
+  - name: "6-Deck H17, Hi-Lo, 1-12 Spread"
+    decks: 6
+    dealer_hits_soft_17: true
+    blackjack_payout: 1.5
+    surrender_allowed: false
+    strategy: 
+      type: "Hi-Lo"
+      bet_spread: [1, 2, 4, 6, 8, 12]
+    penetration: 0.75
+    num_hands: 1000000
+
+  - name: "8-Deck S17, Basic Strategy only"
+    decks: 8
+    dealer_hits_soft_17: false
+    blackjack_payout: 1.5
+    surrender_allowed: true
+    strategy: 
+      type: "basic"
+      bet_spread: [1, 1]
+    penetration: 0.8
+    num_hands: 1000000
