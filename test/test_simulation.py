@@ -1,6 +1,27 @@
 import pytest
 from unittest.mock import patch
 
+def test_player_bust():
+    from blackjack.simulation import Simulator
+    from blackjack.cards import Card
+
+    sim = Simulator(strategy_path="config/strategy.yaml")
+
+    # Patch the Shoe.deal_card() method so we know exactly which cards are dealt
+    # Suppose player's first two cards are (10, 10) => bust
+    # Dealer's first card is 5, second card is Q
+    deal_sequence = [
+        Card("J","♣"), Card("6","♦"),  # player's hand
+        Card("9","♣"), Card("A","♦"),   # dealer's hand
+        # Next card for player
+        Card("Q","♠")
+    ]
+    
+    with patch.object(sim.shoe, 'deal_card', side_effect=deal_sequence):
+        result = sim.play_hand()
+        # Player busts => lose bet
+        assert result == -sim.strategy.bet
+
 def test_player_blackjack():
     from blackjack.simulation import Simulator
     from blackjack.cards import Card
@@ -52,9 +73,10 @@ def test_double_down():
         Card("5","♠"), Card("6","♥"),
         # Dealer's 2 cards
         Card("6","♣"), Card("10","♦"),
-        # Player's double-down card
+        # Player's double-down cards
         Card("9","♥"),
         # Next cards for dealer if needed
+        Card("2","♠")
     ]
     
     with patch.object(sim.shoe, 'deal_card', side_effect=deal_sequence):
@@ -79,6 +101,7 @@ def test_splitting():
         Card("10","♦"), Card("4","♣"), # Dealer
         Card("2","♦"), Card("3","♣"),  # first new card for first hand, second new card for second
         # possible additional dealer draws if needed
+        Card("2","♠"), Card("3","♠")
     ]
     
     with patch.object(sim.shoe, 'deal_card', side_effect=deal_sequence):
@@ -93,13 +116,16 @@ def test_surrender():
 
     sim = Simulator(strategy_path="config/strategy.yaml")
     sim.strategy.bet = 10
+    sim.rules.surrender_allowed = True
 
     # Force player's hand = (9,7) => 16
     # Dealer up = 10
     # Suppose strategy or fallback => "RH"
     deal_sequence = [
-        Card("9","♠"), Card("7","♥"),
-        Card("10","♦"), Card("4","♣"),
+        Card("9","♠"), Card("7","♥"),     # Player hand
+        Card("10","♦"), Card("4","♣"),    # Dealer hand
+        # Next cards for dealer if needed
+        Card("8","♠"), Card("3","♠")
     ]
     with patch.object(sim.shoe, 'deal_card', side_effect=deal_sequence):
         result = sim.play_hand()

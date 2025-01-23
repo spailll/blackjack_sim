@@ -21,7 +21,7 @@ class Card:
 
 class Deck:
     ranks = [str(n) for n in range(2, 11)] + ["J", "Q", "K", "A"]
-    suits = ["♠", "♡", "♢", "♣"]
+    suits = ["♠", "♥", "♦", "♣"]
 
     def __init__(self):
         self.cards = [Card(rank, suit) for suit in self.suits for rank in self.ranks]

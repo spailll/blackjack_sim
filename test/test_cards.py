@@ -28,6 +28,6 @@ def test_deck_shuffle():
 
 def test_shoe_init():
     from blackjack.cards import Shoe
-    shoe = Shoe(num_decks=6)
+    shoe = Shoe(6)
     assert len(shoe.cards) == 6 * 52
 

@@ -1,11 +1,13 @@
 # blackjack/rules.py
 
 class BlackjackRules:
-    def __init__(self, decks, dealer_hits_soft_17=True, blackjack_payout=1.5, surrender_allowed=False):
+    def __init__(self, decks, dealer_hits_soft_17=False, blackjack_payout=1.5, surrender_allowed=False, double_after_split_allowed=True, deck_penetration=0.5):
         self.decks = decks
         self.dealer_hits_soft_17 = dealer_hits_soft_17
         self.blackjack_payout = blackjack_payout
         self.surrender_allowed = surrender_allowed
+        self.double_after_split_allowed = double_after_split_allowed
+        self.deck_penetration = deck_penetration
 
     def is_blackjack(self, hand):
         return len(hand) == 2 and self.hand_value(hand) == 21

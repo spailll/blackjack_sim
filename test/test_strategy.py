@@ -26,7 +26,7 @@ def test_basic_strategy_soft_17_vs_dealer_6():
     dealer_up = Card("6", "♦")
     action = strategy.decide_player_action(player_hand, dealer_up, rules)
     # Verify matches your strategy chart row
-    assert action in ["DH","DS","H"]  # depends on your chart
+    assert action == "DH"  # depends on your chart
 
 def test_basic_strategy_pair_8s_vs_dealer_10():
     from blackjack.strategy import BasicStrategy

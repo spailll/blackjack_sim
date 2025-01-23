@@ -33,7 +33,7 @@ class Strategy:
     def _is_soft(self):
         total = self.rules.hand_value(self.hand)
         has_ace = any(card.rank == "A" for card in self.hand)
-        return has_ace and self.rules.hand_value(self.hand) + 10 <= 21
+        return has_ace and self.rules.hand_value(self.hand) < 21
 
     def _pair_row_index(self):
         rank = self.hand[0].rank
@@ -70,22 +70,42 @@ class Strategy:
         return self.dealer_index_map[self.dealer_card.rank]
 
 class BasicStrategy:
-    def __init__(self, strategy_path, bet=1):
+    def __init__(self, bet=15, strategy_name=None, spread_name=None):
         self.bet = bet
         self.running_count = 0
 
-        with open (strategy_path, "r") as f:
+        self.strategy_name = strategy_name
+        self.spread_name = spread_name
+
+        with open ("config/strategy.yaml", "r") as f:
             data = yaml.safe_load(f)
+
+        # FIXME: Add deviation logic by taking out the [0] from the else and moving it later 
+        if self.strategy_name:
+            self._all_charts = data[strategy_name]["counts"]
+        else:    
+            self._all_charts = data["basic"]["counts"]
         
-        self._all_charts = data["basic"]["counts"][0]
+
+        if self.spread_name:
+            with open("config/spread.yaml", "r") as f:
+                data = yaml.safe_load(f)
+            self._spread = data["basic"]["thresholds"]
+        else: 
+            self._spread = None
+
 
     def update_count(self, card):
         # Hi-Lo Example (2-6 = +1, 7-9 = 0, 10-Ace = -1)
         rank = card.rank
+
         if rank in ["2", "3", "4", "5", "6"]:
             self.running_count += 1
         elif rank in ["10", "J", "Q", "K", "A"]:
             self.running_count -= 1
+    
+    def reset_count(self):
+        self.running_count = 0
 
     def get_true_count(self, decks_remaining):
         if decks_remaining < 1:         # Avoid divide by 0
@@ -97,17 +117,24 @@ class BasicStrategy:
     def get_bet(self, decks_remaining):
         tc = math.floor(self.get_true_count(decks_remaining))
         chosen_bet = 1 # Default
-        # for threshold_info in self._spread:
-        #     if tc >= threshold_info["count"]:
-        #         chosen_bet = threshold_info["bet"]
-        #     else:
-        #         break
-        return chosen_bet
+        if not self._spread:
+            return self.bet
+        for x in self._spread:
+            threshold = x["count"] 
+            if tc >= threshold:
+                chosen_bet = x["bet"]
+        return chosen_bet * self.bet
 
-    def decide_player_action(self, hand, dealer_card, rules):
+    def decide_player_action(self, hand, dealer_card, rules, decks_remaining):
         # TC_index Logic Goes here in other versions
-    
+        if self.strategy_name:
+            tc = math.floor(self.get_true_count(decks_remaining))
+            tc = min(max(tc, -6), 6)
+            chart = self._all_charts[tc + 6]
+        else:
+            chart = self._all_charts[0]
+
         strategy = Strategy(hand, dealer_card, rules)
         table_index, row_index, col_index = strategy.get_coordinates()
 
-        return self._all_charts[table_index][row_index][col_index]
+        return chart[table_index][row_index][col_index]
