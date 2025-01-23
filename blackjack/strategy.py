@@ -70,9 +70,11 @@ class Strategy:
         return self.dealer_index_map[self.dealer_card.rank]
 
 class BasicStrategy:
-    def __init__(self, bet=15, strategy_name=None, spread_name=None):
+    def __init__(self, bet=15, strategy_name=None, spread_name=None, insurance_count_threshold=3, counting_system="hi-lo"):
         self.bet = bet
         self.running_count = 0
+        self.insurance_count_threshold = insurance_count_threshold
+        self.counting_system = counting_system
 
         self.strategy_name = strategy_name
         self.spread_name = spread_name
@@ -94,16 +96,159 @@ class BasicStrategy:
         else: 
             self._spread = None
 
-
+# ================COUNTING SYSETMS=================
     def update_count(self, card):
         # Hi-Lo Example (2-6 = +1, 7-9 = 0, 10-Ace = -1)
         rank = card.rank
+        if self.counting_system == "hi-lo":
+            if rank in ["2", "3", "4", "5", "6"]:
+                self.running_count += 1
+            elif rank in ["10", "J", "Q", "K", "A"]:
+                self.running_count -= 1
 
-        if rank in ["2", "3", "4", "5", "6"]:
-            self.running_count += 1
-        elif rank in ["10", "J", "Q", "K", "A"]:
-            self.running_count -= 1
-    
+        elif self.counting_system == "hi-lo opt I":
+            if rank in ["3", "4", "5", "6"]:
+                self.running_count += 1
+            elif rank in ["10", "J", "Q", "K"]:
+                self.running_count -= 1
+        
+        elif self.counting_system == "hi-lo opt II":
+            if rank in ["2", "3", "6", "7"]:
+                self.running_count += 1
+            elif rank in ["4", "5"]:
+                self.running_count += 2
+            elif rank in ["10", "J", "Q", "K"]:
+                self.running_count -= 2
+        
+        elif self.counting_system == "k-o":
+            if rank in ["2", "3", "4", "5", "6", "7"]:
+                self.running_count += 1
+            elif rank in ["10", "J", "Q", "K", "A"]:
+                self.running_count -= 1
+
+        elif self.counting_system == "mentor":
+            if rank in ["2", "7"]:
+                self.running_count += 1
+            elif rank in ["3", "4", "5", "6"]:
+                self.running_count += 2
+            elif rank in ["9", "A"]:
+                self.running_count -= 1
+            elif rank in ["10", "J", "Q", "K"]:
+                self.running_count -= 2
+
+        elif self.counting_system == "omega II":
+            if rank in ["2", "3", "7"]:
+                self.running_count += 1
+            elif rank in ["4", "5", "6"]:
+                self.running_count += 2
+            elif rank == "9":
+                self.running_count -= 1
+            elif rank in ["10", "J", "Q", "K"]:
+                self.running_count -= 2
+
+        elif self.counting_system == "reko":
+            if rank in ["2", "3", "4", "5", "6", "7"]:
+                self.running_count += 1
+            elif rank in ["10", "J", "Q", "K", "A"]:
+                self.running_count -= 1
+
+        elif self.counting_system == "reverse point count":
+            if rank in ["2", "7"]:
+                self.running_count += 1
+            elif rank in ["3", "4", "5", "6"]:
+                self.running_count += 2
+            elif rank in ["10", "J", "Q", "K", "A"]:
+                self.running_count -= 2
+
+        elif self.counting_system == "reverse 14 count":
+            if rank == "7":
+                self.running_count += 1
+            elif rank in ["2", "3", "6"]:
+                self.running_count += 2
+            elif rank == "4":
+                self.running_count += 3
+            elif rank == "5":
+                self.running_count += 4
+            elif rank == "9":
+                self.running_count -= 2
+            elif rank in ["10", "J", "Q", "K"]:
+                self.running_count -= 3
+
+        elif self.counting_system == "reverse rapc":
+            if rank in ["2", "7"]:
+                self.running_count += 2
+            elif rank in ["3", "4", "6"]:
+                self.running_count += 3
+            elif rank == "5":
+                self.running_count += 4
+            elif rank == "9":
+                self.running_count -= 1
+            elif rank in  ["10", "J", "Q", "K"]:
+                self.running_count -= 3
+            elif rank == "A":
+                self.running_count -= 4
+
+        elif self.counting_system == "silver fox":
+            if rank in ["2", "3", "4", "5", "6", "7"]:
+                self.running_count += 1
+            elif rank in ["9", "10", "J", "Q", "K", "A"]:
+                self.running_count -= 1
+
+        elif self.counting_system == "unbalanced zen 2":
+            if rank in ["2", "7"]:
+                self.running_count += 1
+            elif rank in ["3", "4", "5", "6"]:
+                self.running_count += 2
+            elif rank == "A":
+                self.running_count -= 1
+            elif rank in ["10", "J", "Q", "K"]:
+                self.running_count -= 2
+
+        elif self.counting_system == "uston apc":
+            if rank in ["2", "8"]:
+                self.running_count += 1
+            elif rank in ["3", "4", "6", "7"]:
+                self.running_count += 2
+            elif rank == "5":
+                self.running_count += 3
+            elif rank == "9":
+                self.running_count -= 1
+            elif rank in ["10", "J", "Q", "K"]:
+                self.running_count -= 3
+
+        elif self.counting_system == "uston ss":
+            if rank == "7":
+                self.running_count += 1
+            elif rank in ["2", "3", "4", "6"]:
+                self.running_count += 2
+            elif rank == "9":
+                self.running_count -= 1
+            elif rank in ["10", "J", "Q", "K", "A"]:
+                self.running_count -= 2
+
+        elif self.counting_system == "wong halves":
+            if rank in ["2", "7"]:
+                self.running_count += 0.5
+            elif rank in ["3", "4", "6"]:
+                self.running_count += 1
+            elif rank == "5":
+                self.running_count += 1.5
+            elif rank == "9":
+                self.running_count -= 0.5
+            elif rank in ["10", "J", "Q", "K", "A"]:
+                self.running_count -= 1
+
+        elif self.counting_system == "zen count":
+            if rank in ["2", "3", "7"]:
+                self.running_count += 1
+            elif rank in ["4", "5", "6"]:
+                self.running_count += 2
+            elif rank == "A":
+                self.running_count -= 1
+            elif rank in ["10", "J", "Q", "K"]:
+                self.running_count -= 2
+# =================================================
+
     def reset_count(self):
         self.running_count = 0
 

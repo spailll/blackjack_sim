@@ -3,8 +3,8 @@
 basic:
   thresholds:
     - count: -999
-      bet: 0
+      bet: 1
     - count: 0
       bet: 1
     - count: 2
-      bet: 3
+      bet: 1

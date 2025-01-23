@@ -6,7 +6,7 @@ from .rules import BlackjackRules
 from .strategy import BasicStrategy
 
 class Simulator:
-    def __init__(self, strategy_name=None, num_decks=6):
+    def __init__(self, strategy_name=None, num_decks=6, debug=False):
         #FIXME: Add settings.yml pull of rules, num_decks, etc...
         self.rules = BlackjackRules(num_decks, surrender_allowed=True)
         self.strategy = BasicStrategy(bet=15, strategy_name=strategy_name, spread_name="basic")
@@ -16,6 +16,7 @@ class Simulator:
 
         self.amount_bet = 0
 
+        self.debug = debug
 
 
     def play_hand(self):
@@ -41,7 +42,16 @@ class Simulator:
             self.amount_bet += player_hands[0]["bet"]
             self.player_bankroll += round_net
             return round_net
-        if self.rules.is_blackjack(dealer_hand):
+        if dealer_hand[0].rank == "A":
+            if self.strategy.get_true_count(self.shoe.decks_remaining()) >= self.strategy.insurance_count_threshold:
+                if self.debug:
+                    print("Insurance Taken")
+                self.amount_bet += player_hands[0]["bet"] / 2
+                if self.rules.is_blackjack(dealer_hand):
+                    round_net = 0
+                    self.amount_bet += player_hands[0]["bet"]
+                    return round_net
+        if self.rules.is_blackjack(dealer_hand):   
             round_net = -player_hands[0]["bet"]
             self.player_bankroll += round_net
             self.amount_bet += player_hands[0]["bet"]
@@ -50,7 +60,8 @@ class Simulator:
         player_hands = self.player_turn(player_hands, dealer_hand[0])
         dealer_outcome = self.dealer_turn(dealer_hand)
 
-        print(f"Player: {player_hands}\nDealer: {dealer_hand}")
+        if self.debug:
+            print(f"Player: {player_hands}\nDealer: {dealer_hand}")
 
         for hand in player_hands:
             player_outcome = self.settle_bet(hand, self.rules.hand_value(dealer_hand))
@@ -91,7 +102,7 @@ class Simulator:
                         else:
                             did_fallback  = True
 
-                    if action_code == "PH" and not did_fallback:
+                    if action_code == "PH" and not did_fallback and self.rules.double_after_split_allowed:
                         if self._can_split(hand_info["cards"]):
                             self._do_split(player_hands, i)
                             break

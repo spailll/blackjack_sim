@@ -5,13 +5,13 @@ def test_player_bust():
     from blackjack.simulation import Simulator
     from blackjack.cards import Card
 
-    sim = Simulator(strategy_path="config/strategy.yaml")
+    sim = Simulator()
 
     # Patch the Shoe.deal_card() method so we know exactly which cards are dealt
     # Suppose player's first two cards are (10, 10) => bust
     # Dealer's first card is 5, second card is Q
     deal_sequence = [
-        Card("J","♣"), Card("6","♦"),  # player's hand
+        Card("J","♣"), Card("2","♦"),  # player's hand
         Card("9","♣"), Card("A","♦"),   # dealer's hand
         # Next card for player
         Card("Q","♠")
@@ -26,7 +26,7 @@ def test_player_blackjack():
     from blackjack.simulation import Simulator
     from blackjack.cards import Card
 
-    sim = Simulator(strategy_path="config/strategy.yaml")
+    sim = Simulator()
 
     # Patch the Shoe.deal_card() method so we know exactly which cards are dealt
     # Suppose player's first two cards are (A, K) => blackjack
@@ -46,7 +46,7 @@ def test_player_blackjack_dealer_blackjack():
     from blackjack.simulation import Simulator
     from blackjack.cards import Card
 
-    sim = Simulator(strategy_path="config/strategy.yaml")
+    sim = Simulator()
 
     deal_sequence = [
         Card("A","♠"), Card("K","♥"),  # player
@@ -61,7 +61,7 @@ def test_double_down():
     from blackjack.simulation import Simulator
     from blackjack.cards import Card
 
-    sim = Simulator(strategy_path="config/strategy.yaml")
+    sim = Simulator()
     sim.strategy.bet = 10  # override bet for test
     
     # Suppose we want the player to get 11 (5,6),
@@ -90,7 +90,7 @@ def test_splitting():
     from blackjack.simulation import Simulator
     from blackjack.cards import Card
 
-    sim = Simulator(strategy_path="config/strategy.yaml")
+    sim = Simulator()
     sim.strategy.bet = 10
 
     # Player: 8, 8
@@ -114,7 +114,7 @@ def test_surrender():
     from blackjack.simulation import Simulator
     from blackjack.cards import Card
 
-    sim = Simulator(strategy_path="config/strategy.yaml")
+    sim = Simulator()
     sim.strategy.bet = 10
     sim.rules.surrender_allowed = True
 
@@ -132,3 +132,27 @@ def test_surrender():
         # If player surrenders => lose half bet => -5
         # But check how your logic is coded 
         assert result == -5
+
+def test_insurance_win():
+    from blackjack.simulation import Simulator
+    from blackjack.cards import Card
+
+    sim = Simulator(num_decks=1)
+    sim.strategy.bet = 10
+    sim.rules.insurance_count_threshold = 3
+
+    sim.strategy.running_count = 4  # Force insurance option
+
+    # Force dealer's hand = (A, 10) => blackjack
+    # Player's hand = (9, 7) => 16
+    # Suppose strategy or fallback => "RH"
+    deal_sequence = [
+        Card("9","♠"), Card("7","♥"),     # Player hand
+        Card("A","♦"), Card("10","♣"),    # Dealer hand
+        # Next cards for dealer if needed
+        Card("8","♠"), Card("3","♠")
+    ]
+    with patch.object(sim.shoe, 'deal_card', side_effect=deal_sequence):
+        result = sim.play_hand()
+        # If player takes insurance, and dealer has blackjack => push
+        assert result == 0.0
