@@ -6,15 +6,17 @@ from .rules import BlackjackRules
 from .strategy import BasicStrategy
 
 class Simulator:
-    def __init__(self, strategy_name=None, num_decks=6, debug=False):
+    def __init__(self, strategy_name=None, num_decks=6, debug=False, base_bet=25):
         #FIXME: Add settings.yml pull of rules, num_decks, etc...
         self.rules = BlackjackRules(num_decks, surrender_allowed=True)
-        self.strategy = BasicStrategy(bet=15, strategy_name=strategy_name, spread_name="basic")
+        self.strategy = BasicStrategy(bet=base_bet, strategy_name=strategy_name, spread_name="basic")
         self.shoe = Shoe(self.rules.decks)
         self.player_bankroll = 0.0
         self.hands_played = 0
 
         self.amount_bet = 0
+
+        self.stop_if_bankrupt = False
 
         self.debug = debug
 
@@ -65,10 +67,10 @@ class Simulator:
 
         for hand in player_hands:
             player_outcome = self.settle_bet(hand, self.rules.hand_value(dealer_hand))
-            print(f"Player Outcome: {player_outcome}")
+            if self.debug:
+                print(f"Player Outcome: {player_outcome}")
             round_net += player_outcome
             self.amount_bet += hand["bet"]
-        print()
         self.strategy.update_count(dealer_hand[1])
 
         self.player_bankroll += round_net
@@ -154,7 +156,8 @@ class Simulator:
         return len(hand) == 2
 
     def _do_double(self, hand_info):
-        print("Doubling down")
+        if self.debug:
+            print("Doubling down")
         hand_info["bet"] *= 2
         new_card = self.shoe.deal_card()
         self.strategy.update_count(new_card)
@@ -212,7 +215,12 @@ class Simulator:
             else:
                 return 0.0
 
-    def run_simulation(self, num_hands=1000000):
+    def run_simulation(self, num_hands=1000000, bankroll_limit=None):
+        if bankroll_limit:
+            self.player_bankroll = bankroll_limit
+            self.stop_if_bankrupt = True
+        bankroll_history = []
+
         for _ in range(num_hands):
             if self.shoe.decks_remaining() < self.rules.deck_penetration:
                 self.shoe = Shoe(self.rules.decks)
@@ -220,10 +228,15 @@ class Simulator:
             result = self.play_hand()
             self.player_bankroll += result
             self.hands_played += 1
+            bankroll_history.append(self.player_bankroll)
+            
+            if self.stop_if_bankrupt and self.player_bankroll <= 0:
+                break
 
         return {
             "hands_played": self.hands_played,
             "final_bankroll": self.player_bankroll,
+            "bankroll_history": bankroll_history,
             "amount_bet": self.amount_bet,
             "avg_profit_per_hand": self.player_bankroll / self.hands_played,
             "House Advantage (%)":  (1 - (self.player_bankroll + self.amount_bet) / self.amount_bet) * 100
