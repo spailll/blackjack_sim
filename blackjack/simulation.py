@@ -4,12 +4,32 @@ import random
 from .cards import Shoe
 from .rules import BlackjackRules
 from .strategy import BasicStrategy
+from .utils import load_settings, set_random_seed
 
 class Simulator:
-    def __init__(self, strategy_name=None, num_decks=6, debug=False, base_bet=25):
-        #FIXME: Add settings.yml pull of rules, num_decks, etc...
-        self.rules = BlackjackRules(num_decks, surrender_allowed=True)
-        self.strategy = BasicStrategy(bet=base_bet, strategy_name=strategy_name, spread_name="basic")
+    def __init__(self, scenario=0, debug=False):
+        settings_data = load_settings("config/settings.yaml")
+        set_random_seed(settings_data["random_seed"])
+
+        settings = settings_data["scenarios"][scenario]
+
+        decks = settings["decks"]
+        soft_17 = settings["dealer_hits_soft_17"]
+        bj_payout = settings["blackjack_payout"]
+        surrender = settings["surrender_allowed"]
+        das = settings["double_after_split_allowed"]
+        counting_system = settings["strategy"]["counting"]
+        strategy_name = settings["strategy"]["deviation"]
+        spread_name = settings["strategy"]["spread"]
+        penetration = settings["penetration"]
+        base_bet = settings["base_bet"]
+        num_hands = settings["num_hands"]
+
+        self.rules = BlackjackRules(decks=decks, dealer_hits_soft_17=soft_17, blackjack_payout=bj_payout, surrender_allowed=surrender, double_after_split_allowed=das, deck_penetration=penetration)
+        self.strategy = BasicStrategy(bet=base_bet, strategy_name=strategy_name, spread_name=spread_name, counting_system=counting_system)
+        
+        self.num_hands = num_hands
+
         self.shoe = Shoe(self.rules.decks)
         self.player_bankroll = 0.0
         self.hands_played = 0
@@ -53,6 +73,8 @@ class Simulator:
                     round_net = 0
                     self.amount_bet += player_hands[0]["bet"]
                     return round_net
+                else:
+                    round_net = -player_hands[0]["bet"] / 2
         if self.rules.is_blackjack(dealer_hand):   
             round_net = -player_hands[0]["bet"]
             self.player_bankroll += round_net
@@ -215,13 +237,13 @@ class Simulator:
             else:
                 return 0.0
 
-    def run_simulation(self, num_hands=1000000, bankroll_limit=None):
+    def run_simulation(self, bankroll_limit=None):
         if bankroll_limit:
             self.player_bankroll = bankroll_limit
             self.stop_if_bankrupt = True
         bankroll_history = []
 
-        for _ in range(num_hands):
+        for _ in range(self.num_hands):
             if self.shoe.decks_remaining() < self.rules.deck_penetration:
                 self.shoe = Shoe(self.rules.decks)
                 self.strategy.reset_count()

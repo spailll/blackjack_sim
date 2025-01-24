@@ -1,7 +1,7 @@
 # blackjack/rules.py
 
 class BlackjackRules:
-    def __init__(self, decks, dealer_hits_soft_17=False, blackjack_payout=1.5, surrender_allowed=False, double_after_split_allowed=True, deck_penetration=0.5):
+    def __init__(self, decks=6, dealer_hits_soft_17=False, blackjack_payout=1.5, surrender_allowed=False, double_after_split_allowed=True, deck_penetration=0.25):
         self.decks = decks
         self.dealer_hits_soft_17 = dealer_hits_soft_17
         self.blackjack_payout = blackjack_payout

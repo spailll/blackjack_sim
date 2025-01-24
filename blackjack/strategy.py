@@ -82,17 +82,19 @@ class BasicStrategy:
         with open ("config/strategy.yaml", "r") as f:
             data = yaml.safe_load(f)
 
-        # FIXME: Add deviation logic by taking out the [0] from the else and moving it later 
         if self.strategy_name:
+            print("Using Strategy: ", strategy_name)
             self._all_charts = data[strategy_name]["counts"]
         else:    
             self._all_charts = data["basic"]["counts"]
         
 
         if self.spread_name:
+
             with open("config/spread.yaml", "r") as f:
                 data = yaml.safe_load(f)
-            self._spread = data["basic"]["thresholds"]
+            self._spread = data[spread_name]["thresholds"]
+            print(self._spread)
         else: 
             self._spread = None
 
@@ -272,7 +274,7 @@ class BasicStrategy:
 
     def decide_player_action(self, hand, dealer_card, rules, decks_remaining):
         # TC_index Logic Goes here in other versions
-        if self.strategy_name:
+        if self.strategy_name != "basic":
             tc = math.floor(self.get_true_count(decks_remaining))
             tc = min(max(tc, -6), 6)
             chart = self._all_charts[tc + 6]

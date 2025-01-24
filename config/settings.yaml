@@ -3,15 +3,18 @@
 random_seed: 42
 
 scenarios:
-  - name: "6-Deck H17, Hi-Lo, 1-12 Spread"
-    decks: 6
+  - name: "2-Deck H17, Hi-Lo, 1-12 Spread"
+    decks: 2
     dealer_hits_soft_17: true
     blackjack_payout: 1.5
-    surrender_allowed: false
+    surrender_allowed: true
+    double_after_split_allowed: true
     strategy: 
-      type: "Hi-Lo"
-      bet_spread: [1, 2, 4, 6, 8, 12]
-    penetration: 0.75
+      counting: "Hi-Lo"
+      deviation: "basic"
+      spread: "basic"
+    penetration: 0.25
+    base_bet: 25
     num_hands: 1000000
 
   - name: "8-Deck S17, Basic Strategy only"
