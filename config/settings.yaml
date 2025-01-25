@@ -9,12 +9,13 @@ scenarios:
     blackjack_payout: 1.5
     surrender_allowed: true
     double_after_split_allowed: true
+    insurance_count_threshold: 3
     strategy: 
-      counting: "Hi-Lo"
-      deviation: "basic"
-      spread: "basic"
+      counting: "zen count"         # Find list in README.md
+      deviation: "deviations"   # Set to "basic" to use basic strategy only, edit strategy.yaml to change deviations
+      spread: "basic"           # Set to false for no spread, edit spread.yaml to change spread
     penetration: 0.25
-    base_bet: 25
+    base_bet: 15
     num_hands: 1000000
 
   - name: "8-Deck S17, Basic Strategy only"

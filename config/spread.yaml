@@ -1,12 +1,52 @@
-# config/spread.yaml
-
+none:
+  thresholds:
+  - count: -999
+    bet: 1
 basic:
   thresholds:
-    - count: -999
-      bet: 0
-    - count: 0
-      bet: 1
-    - count: 1
-      bet: 2
-    - count: 3
-      bet: 3
+  - count: -999
+    bet: 0
+  - count: -2
+    bet: 1
+  - count: 0
+    bet: 2
+  - count: 1
+    bet: 3
+  - count: 2
+    bet: 4
+  - count: 3
+    bet: 5
+  - count: 4
+    bet: 6
+  - count: 5
+    bet: 7
+  - count: 6
+    bet: 8
+  - count: 7
+    bet: 9
+  - count: 8
+    bet: 10
+custom:
+  thresholds:
+  - count: -2
+    bet: 1
+  - count: -1
+    bet: 1
+  - count: 0
+    bet: 1
+  - count: 1
+    bet: 5
+  - count: 2
+    bet: 5
+  - count: 3
+    bet: 10
+  - count: 4
+    bet: 10
+  - count: 5
+    bet: 20
+  - count: 6
+    bet: 25
+  - count: 7
+    bet: 40
+  - count: 8
+    bet: 50

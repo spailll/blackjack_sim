@@ -35,34 +35,38 @@ def compute_risk_of_ruin_monte_carlo(bankroll_history, ruin_threshold=0):
     if not bankroll_history:
         return 0.0
 
-    bankrupt_count = sum(1 for bk in bankroll_history if bk < ruin_threshold)
+    bankrupt_count = sum(1 for bk in bankroll_history if bk <= ruin_threshold)
     return bankrupt_count / len(bankroll_history)
 
 
-def analyze_simulation_results(results):
+def analyze_simulation_results(results, bankroll):
     if not results:
         return {}
     
-    final_bankrolls = [res["final_bankroll"] for res in results]
+    final_bankrolls = [max(res["final_bankroll"], 0.0) for res in results]
+    net_profit = [max(res["final_bankroll"], 0.0) - bankroll for res in results]
 
-    stats = compute_basic_stats(final_bankrolls)
+    stats = compute_basic_stats(net_profit)
     mean = stats["mean"]
     stddev = stats["std_dev"]
     n = len(final_bankrolls)
-    
+
     # Confidence Interval
     ci_lower, ci_upper = confidence_interval(mean, stddev, n)
 
     # Risk of Ruin
     ror = compute_risk_of_ruin_monte_carlo(final_bankrolls, ruin_threshold=0.0)
 
+    final_stats = compute_basic_stats(final_bankrolls)
+
+
     analysis_results = {
-        "mean_final_bankroll": mean,
-        "stddev_final_bankroll": stddev,
+        "mean_profit": mean,
+        "stddev_profit": stddev,
         "CI_95": (ci_lower, ci_upper),
         "risk_of_ruin": ror,
-        "min_final_bankroll": stats["min"],
-        "max_final_bankroll": stats["max"],
+        "min_final_bankroll": max(final_stats["min"], 0.0),
+        "max_final_bankroll": final_stats["max"],
     }
 
     return analysis_results

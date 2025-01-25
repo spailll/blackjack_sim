@@ -70,7 +70,7 @@ class Strategy:
         return self.dealer_index_map[self.dealer_card.rank]
 
 class BasicStrategy:
-    def __init__(self, bet=15, strategy_name=None, spread_name=None, insurance_count_threshold=3, counting_system="hi-lo"):
+    def __init__(self, bet=15, strategy_name="basic", spread_name="basic", counting_system="hi-lo", insurance_count_threshold=None):
         self.bet = bet
         self.running_count = 0
         self.insurance_count_threshold = insurance_count_threshold
@@ -83,18 +83,15 @@ class BasicStrategy:
             data = yaml.safe_load(f)
 
         if self.strategy_name:
-            print("Using Strategy: ", strategy_name)
             self._all_charts = data[strategy_name]["counts"]
         else:    
             self._all_charts = data["basic"]["counts"]
         
 
         if self.spread_name:
-
             with open("config/spread.yaml", "r") as f:
                 data = yaml.safe_load(f)
             self._spread = data[spread_name]["thresholds"]
-            print(self._spread)
         else: 
             self._spread = None
 

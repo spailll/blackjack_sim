@@ -7,9 +7,36 @@ from .strategy import BasicStrategy
 from .utils import load_settings, set_random_seed
 
 class Simulator:
-    def __init__(self, scenario=0, debug=False):
+    def __init__(self, debug=False):
+        self.debug = debug
+
+        self.rules = None
+        self.strategy = None
+        
+        self.player_bankroll = 0.0
+        self.hands_played = 0
+        self.amount_bet = 0
+        self.num_hands=6
+
+        self.stop_if_bankrupt = False
+
+        set_random_seed(random.randint(0, 1000))
+
+
+    def setup(self, num_decks=6, num_hands=1000000, base_bet=15, double_after_split=True,
+              dealer_hits_soft_17=False, blackjack_payout=1.5, surrender_allowed=False,
+              insurance_threshold=3, counting_system="hi-lo", strategy_name="basic",
+              spread_name="basic", penetration=0.25):
+        
+        self.num_hands = num_hands
+        self.rules = BlackjackRules(decks=num_decks, dealer_hits_soft_17=dealer_hits_soft_17, blackjack_payout=blackjack_payout, surrender_allowed=surrender_allowed, double_after_split_allowed=double_after_split, deck_penetration=penetration)
+        self.strategy = BasicStrategy(bet=base_bet, strategy_name=strategy_name, spread_name=spread_name, counting_system=counting_system, insurance_count_threshold=insurance_threshold)
+        
+        self.shoe = Shoe(self.rules.decks)
+
+    def setup_from_config(self, scenario=0):
         settings_data = load_settings("config/settings.yaml")
-        set_random_seed(settings_data["random_seed"])
+        set_random_seed(random.randint(0, 1000))
 
         settings = settings_data["scenarios"][scenario]
 
@@ -18,28 +45,19 @@ class Simulator:
         bj_payout = settings["blackjack_payout"]
         surrender = settings["surrender_allowed"]
         das = settings["double_after_split_allowed"]
+        insurance_threshold = settings["insurance_count_threshold"]
         counting_system = settings["strategy"]["counting"]
         strategy_name = settings["strategy"]["deviation"]
         spread_name = settings["strategy"]["spread"]
         penetration = settings["penetration"]
         base_bet = settings["base_bet"]
-        num_hands = settings["num_hands"]
+
+        self.num_hands = settings["num_hands"]
 
         self.rules = BlackjackRules(decks=decks, dealer_hits_soft_17=soft_17, blackjack_payout=bj_payout, surrender_allowed=surrender, double_after_split_allowed=das, deck_penetration=penetration)
-        self.strategy = BasicStrategy(bet=base_bet, strategy_name=strategy_name, spread_name=spread_name, counting_system=counting_system)
+        self.strategy = BasicStrategy(bet=base_bet, strategy_name=strategy_name, spread_name=spread_name, counting_system=counting_system, insurance_count_threshold=insurance_threshold)
         
-        self.num_hands = num_hands
-
         self.shoe = Shoe(self.rules.decks)
-        self.player_bankroll = 0.0
-        self.hands_played = 0
-
-        self.amount_bet = 0
-
-        self.stop_if_bankrupt = False
-
-        self.debug = debug
-
 
     def play_hand(self):
         player_hands = [
@@ -64,7 +82,7 @@ class Simulator:
             self.amount_bet += player_hands[0]["bet"]
             self.player_bankroll += round_net
             return round_net
-        if dealer_hand[0].rank == "A":
+        if dealer_hand[0].rank == "A" and self.strategy.insurance_count_threshold:
             if self.strategy.get_true_count(self.shoe.decks_remaining()) >= self.strategy.insurance_count_threshold:
                 if self.debug:
                     print("Insurance Taken")
@@ -237,7 +255,10 @@ class Simulator:
             else:
                 return 0.0
 
-    def run_simulation(self, bankroll_limit=None):
+    def run_simulation(self, num_hands=None, bankroll_limit=None):
+        if num_hands:
+            self.num_hands = num_hands
+
         if bankroll_limit:
             self.player_bankroll = bankroll_limit
             self.stop_if_bankrupt = True
@@ -252,7 +273,7 @@ class Simulator:
             self.hands_played += 1
             bankroll_history.append(self.player_bankroll)
             
-            if self.stop_if_bankrupt and self.player_bankroll <= 0:
+            if self.stop_if_bankrupt and self.player_bankroll < 0:
                 break
 
         return {
