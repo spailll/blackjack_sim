@@ -298,7 +298,7 @@ class BlackjackGUI:
             "insurance_allowed": self.insurance_allowed_var.get(),
             "insurance_threshold": self.insurance_threshold_var.get(),
             "counting_system": self.counting_var.get(),
-            # "custom_spread": [int(var.get()) for var in self.spread_config_vars]
+            "sim_type": self.sim_type_var.get()
         }
 
         # Input Validation
@@ -407,7 +407,7 @@ class BlackjackGUI:
         self.root.update_idletasks()
 
         # Analyze and display results
-        if self.sim_type_var == "Risk of Ruin":
+        if params["sim_type"] == "Risk of Ruin":
             self.display_results(results_list, params)
         else:
             self.display_results_nolim(results_list, params)

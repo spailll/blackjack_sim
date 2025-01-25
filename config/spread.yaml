@@ -28,16 +28,12 @@ basic:
     bet: 10
 custom:
   thresholds:
-  - count: -2
-    bet: 1
-  - count: -1
-    bet: 1
   - count: 0
     bet: 1
   - count: 1
-    bet: 5
+    bet: 1
   - count: 2
-    bet: 5
+    bet: 1
   - count: 3
     bet: 10
   - count: 4
@@ -45,7 +41,7 @@ custom:
   - count: 5
     bet: 20
   - count: 6
-    bet: 25
+    bet: 30
   - count: 7
     bet: 40
   - count: 8
